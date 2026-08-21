@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#12120f">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob: https://raw.githubusercontent.com https://avatars.githubusercontent.com; connect-src https://api.github.com https://raw.githubusercontent.com https://sosirusok.github.io; frame-src https://sosirusok.github.io; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <title>WAG Admin</title>
+</head>
+<body>
+  <div class="auth-view" data-auth-view>
+    <div class="auth-brand">
+      <a class="brand" href="https://sosirusok.github.io/WAG/" target="_blank" rel="noopener noreferrer">
+        <span>WAG</span><em>ADMIN</em>
+      </a>
+      <div class="auth-statement">
+        <p>CONTENT CONTROL</p>
+        <h1>사이트를 직접,<br><strong>안전하고 쉽게.</strong></h1>
+        <span>작업 사례와 서비스 문구를 수정하고 한 번에 게시합니다.</span>
+      </div>
+      <div class="auth-grid" aria-hidden="true"></div>
+    </div>
+
+    <main class="auth-panel">
+      <div class="auth-panel-inner">
+        <div class="auth-heading">
+          <p>OWNER ACCESS</p>
+          <h2>GitHub로 연결</h2>
+          <span>WAG 저장소에만 접근할 수 있는 토큰을 사용합니다.</span>
+        </div>
+        <form class="token-form" data-token-form autocomplete="off">
+          <label for="github-token">Fine-grained personal access token</label>
+          <div class="token-input-wrap">
+            <input id="github-token" name="token" type="password" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="github_pat_..." required>
+            <button type="button" data-token-toggle aria-label="토큰 표시 전환">보기</button>
+          </div>
+          <label class="session-option">
+            <input type="checkbox" name="remember" checked>
+            <span>이 탭을 닫을 때까지 연결 유지</span>
+          </label>
+          <button class="connect-button" type="submit" data-connect-button>
+            <span>관리 화면 열기</span><span aria-hidden="true">→</span>
+          </button>
+          <p class="auth-error" data-auth-error role="alert"></p>
+        </form>
+
+        <details class="token-guide">
+          <summary>처음 연결하시나요?</summary>
+          <ol>
+            <li><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer">GitHub 토큰 만들기 ↗</a>를 엽니다.</li>
+            <li>Repository access에서 <b>Only select repositories</b>를 고르고 <b>WAG</b>만 선택합니다.</li>
+            <li>Repository permissions에서 <b>Contents: Read and write</b>만 허용한 뒤 생성합니다.</li>
+          </ol>
+        </details>
+
+        <div class="security-note">
+          <span aria-hidden="true">◉</span>
+          <p>토큰은 WAG-admin 저장소나 주소에 저장되지 않습니다. 선택한 경우에도 현재 브라우저 탭의 세션 저장소에만 남습니다.</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div class="admin-view" data-admin-view hidden>
+    <header class="admin-header">
+      <button class="sidebar-toggle" type="button" data-sidebar-toggle aria-label="관리 메뉴 열기"><span></span><span></span></button>
+      <a class="admin-logo" href="#dashboard"><b>WAG</b><span>ADMIN</span></a>
+      <div class="sync-state" data-sync-state><i></i><span>사이트와 동기화됨</span></div>
+      <div class="header-actions">
+        <button type="button" class="text-button" data-history-button>게시 이력</button>
+        <a class="text-button" href="https://sosirusok.github.io/WAG/" target="_blank" rel="noopener noreferrer">사이트 보기 ↗</a>
+        <button type="button" class="logout-button" data-logout-button>연결 종료</button>
+      </div>
+    </header>
+
+    <aside class="admin-sidebar" data-sidebar>
+      <nav aria-label="관리 항목">
+        <button type="button" class="is-active" data-section-target="dashboard"><span>01</span>대시보드</button>
+        <button type="button" data-section-target="basic"><span>02</span>기본 정보</button>
+        <button type="button" data-section-target="services"><span>03</span>서비스</button>
+        <button type="button" data-section-target="projects"><span>04</span>작업 사례</button>
+        <button type="button" data-section-target="process"><span>05</span>진행 절차</button>
+        <button type="button" data-section-target="faq"><span>06</span>자주 묻는 질문</button>
+      </nav>
+      <div class="sidebar-account">
+        <img data-user-avatar alt="">
+        <div><b data-user-login>sosirusok</b><span>GitHub owner</span></div>
+      </div>
+    </aside>
+
+    <main class="admin-main">
+      <section class="admin-section is-active" data-section="dashboard">
+        <div class="page-heading">
+          <p>OVERVIEW</p>
+          <h1>WAG 운영 현황</h1>
+          <span>사이트에 표시되는 내용과 최근 게시 상태를 확인합니다.</span>
+        </div>
+        <div class="metric-grid">
+          <article><span>공개 작업</span><b data-metric-projects>0</b><em>PROJECTS</em></article>
+          <article><span>서비스 영역</span><b data-metric-services>0</b><em>SERVICES</em></article>
+          <article><span>자주 묻는 질문</span><b data-metric-faq>0</b><em>FAQ</em></article>
+          <article class="metric-accent"><span>현재 상태</span><b data-metric-state>정상</b><em>LIVE</em></article>
+        </div>
+        <div class="dashboard-grid">
+          <article class="dashboard-card">
+            <div class="card-heading"><span>최근 콘텐츠</span><button type="button" data-section-jump="basic">수정하기 →</button></div>
+            <dl><dt>사이트 제목</dt><dd data-summary-title></dd></dl>
+            <dl><dt>최근 게시</dt><dd data-summary-updated></dd></dl>
+            <dl><dt>기준 버전</dt><dd class="mono" data-summary-sha></dd></dl>
+          </article>
+          <article class="dashboard-card quick-card">
+            <div class="card-heading"><span>빠른 작업</span></div>
+            <button type="button" data-section-jump="projects"><b>＋</b><span>새 작업 사례 추가</span><em>작업 목록 열기</em></button>
+            <button type="button" data-preview-button><b>↗</b><span>변경 내용 미리보기</span><em>게시 전 화면 확인</em></button>
+          </article>
+        </div>
+        <div class="draft-notice" data-draft-notice hidden>
+          <div><b>저장되지 않은 임시 작업이 있습니다.</b><span data-draft-time></span></div>
+          <div><button type="button" data-draft-restore>불러오기</button><button type="button" data-draft-discard>삭제</button></div>
+        </div>
+      </section>
+
+      <section class="admin-section" data-section="basic">
+        <div class="page-heading"><p>SITE COPY</p><h1>기본 정보</h1><span>첫 화면 문구와 연락처, 검색 결과에 표시될 내용을 수정합니다.</span></div>
+        <div class="editor-stack" data-basic-editor></div>
+      </section>
+
+      <section class="admin-section" data-section="services">
+        <div class="page-heading with-action"><div><p>SERVICE</p><h1>서비스</h1><span>WAG가 제공하는 제작 영역과 세부 항목을 관리합니다.</span></div><button class="outline-button" type="button" data-add-service>서비스 추가</button></div>
+        <div class="editor-stack" data-services-editor></div>
+      </section>
+
+      <section class="admin-section" data-section="projects">
+        <div class="page-heading with-action"><div><p>PORTFOLIO</p><h1>작업 사례</h1><span>사례를 추가하고 공개 여부와 노출 순서를 정합니다.</span></div><button class="primary-small-button" type="button" data-add-project>＋ 작업 추가</button></div>
+        <div class="project-editor-list" data-projects-editor></div>
+      </section>
+
+      <section class="admin-section" data-section="process">
+        <div class="page-heading with-action"><div><p>PROCESS</p><h1>진행 절차</h1><span>상담부터 배포까지 고객에게 안내할 과정을 관리합니다.</span></div><button class="outline-button" type="button" data-add-process>단계 추가</button></div>
+        <div class="editor-stack" data-process-editor></div>
+      </section>
+
+      <section class="admin-section" data-section="faq">
+        <div class="page-heading with-action"><div><p>FAQ</p><h1>자주 묻는 질문</h1><span>문의 전에 고객이 확인할 질문과 답변을 관리합니다.</span></div><button class="outline-button" type="button" data-add-faq>질문 추가</button></div>
+        <div class="editor-stack" data-faq-editor></div>
+      </section>
+    </main>
+
+    <footer class="publish-bar">
+      <div><i data-dirty-dot></i><span data-change-state>게시된 내용과 같습니다.</span></div>
+      <div>
+        <button type="button" class="preview-button" data-preview-button>미리보기</button>
+        <button type="button" class="publish-button" data-publish-button disabled><span>변경 내용 게시</span><span aria-hidden="true">↑</span></button>
+      </div>
+    </footer>
+  </div>
+
+  <dialog class="preview-dialog" data-preview-dialog>
+    <div class="dialog-topbar"><b>게시 전 미리보기</b><button type="button" data-preview-close aria-label="닫기">×</button></div>
+    <div class="draft-preview" data-draft-preview></div>
+  </dialog>
+
+  <dialog class="history-dialog" data-history-dialog>
+    <div class="dialog-topbar"><div><b>게시 이력</b><span>이전 내용을 불러온 뒤 새 버전으로 다시 게시할 수 있습니다.</span></div><button type="button" data-history-close aria-label="닫기">×</button></div>
+    <div class="history-list" data-history-list></div>
+  </dialog>
+
+  <dialog class="confirm-dialog" data-confirm-dialog>
+    <div class="confirm-inner">
+      <span class="confirm-mark">↑</span>
+      <h2>변경 내용을 게시할까요?</h2>
+      <p>사이트 데이터와 새 이미지를 하나의 버전으로 저장합니다. GitHub Pages 반영에는 보통 잠시 시간이 걸립니다.</p>
+      <label for="commit-message">변경 요약</label>
+      <input id="commit-message" data-commit-message maxlength="72" value="WAG 콘텐츠 업데이트">
+      <div><button type="button" data-confirm-cancel>취소</button><button type="button" data-confirm-publish>게시하기</button></div>
+    </div>
+  </dialog>
+
+  <div class="toast-region" aria-live="polite" aria-atomic="true" data-toast-region></div>
+  <div class="loading-screen" data-loading-screen hidden><div class="loading-mark">WAG</div><p data-loading-text>사이트 내용을 불러오는 중입니다.</p></div>
+
+  <script src="admin.js" defer></script>
+</body>
+</html>
