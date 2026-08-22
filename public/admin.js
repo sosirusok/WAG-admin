@@ -92,11 +92,11 @@
         try { payload = JSON.parse(text); } catch { payload = text; }
       }
       if (!response.ok) {
-        throw new ApiError(response.status, payload?.message || `GitHub 요청 실패 (${response.status})`, payload);
+        throw new ApiError(response.status, payload?.message || `관리 서버 요청 실패 (${response.status})`, payload);
       }
       return payload;
     } catch (error) {
-      if (error.name === "AbortError") throw new ApiError(408, "GitHub 응답 시간이 초과되었습니다.");
+      if (error.name === "AbortError") throw new ApiError(408, "관리 서버 응답 시간이 초과되었습니다.");
       throw error;
     } finally {
       window.clearTimeout(timeout);
@@ -163,7 +163,7 @@
       dot.classList.remove("is-dirty");
       publish.disabled = true;
       sync.classList.remove("is-dirty", "is-error");
-      $("span", sync).textContent = "사이트와 동기화됨";
+      $("span", sync).textContent = "내용 불러옴";
     }
     renderDashboardSummary();
   };
@@ -172,6 +172,10 @@
     window.clearTimeout(autosaveTimer);
     autosaveTimer = window.setTimeout(() => {
       if (!dirty || !content) return;
+      if (pendingUploads.size) {
+        localStorage.removeItem(DRAFT_KEY);
+        return;
+      }
       try {
         localStorage.setItem(DRAFT_KEY, JSON.stringify({ baseHead, savedAt: new Date().toISOString(), content }));
       } catch {
@@ -212,15 +216,15 @@
 
   const connect = async (candidateToken, remember) => {
     token = candidateToken.trim();
-    if (token.length < 20) throw new ApiError(401, "올바른 GitHub 토큰을 입력해 주세요.");
-    showLoading("GitHub 권한을 확인하는 중입니다.");
+    if (token.length < 20) throw new ApiError(401, "올바른 관리 키를 입력해 주세요.");
+    showLoading("관리 권한을 확인하는 중입니다.");
     currentUser = await api("/user");
     if (currentUser.login !== OWNER) {
-      throw new ApiError(403, `${OWNER} 계정에서 만든 토큰이 아닙니다.`);
+      throw new ApiError(403, "등록된 관리자 계정의 관리 키가 아닙니다.");
     }
     const repository = await api(`/repos/${OWNER}/${REPO}`);
     if (!repository.permissions?.push) {
-      throw new ApiError(403, "이 토큰에는 WAG 저장소 쓰기 권한이 없습니다.");
+      throw new ApiError(403, "이 관리 키에는 사이트 수정 권한이 없습니다.");
     }
     loadingText.textContent = "사이트 내용을 불러오는 중입니다.";
     await loadRepositoryContent();
@@ -239,9 +243,9 @@
   };
 
   const readableAuthError = (error) => {
-    if (error.status === 401) return "토큰이 유효하지 않거나 만료되었습니다.";
-    if (error.status === 403) return error.message || "WAG 저장소 권한이 부족합니다.";
-    if (error.status === 404) return "WAG 저장소나 콘텐츠 파일을 찾을 수 없습니다.";
+    if (error.status === 401) return "관리 키가 유효하지 않거나 만료되었습니다.";
+    if (error.status === 403) return error.message || "사이트 수정 권한이 부족합니다.";
+    if (error.status === 404) return "사이트 콘텐츠를 찾을 수 없습니다.";
     if (error.status === 408) return error.message;
     return error.message || "연결 중 문제가 발생했습니다.";
   };
@@ -437,10 +441,9 @@
     $("[data-metric-projects]").textContent = String(content.projects.filter((project) => project.published).length).padStart(2, "0");
     $("[data-metric-services]").textContent = String(content.services.length).padStart(2, "0");
     $("[data-metric-faq]").textContent = String(content.faq.length).padStart(2, "0");
-    $("[data-metric-state]").textContent = dirty ? "수정 중" : "정상";
+    $("[data-metric-state]").textContent = dirty ? "수정 중" : "저장됨";
     $("[data-summary-title]").textContent = content.meta.title;
     $("[data-summary-updated]").textContent = formatDate(content.meta.updatedAt);
-    $("[data-summary-sha]").textContent = baseHead ? baseHead.slice(0, 12) : "-";
   };
 
   const renderAll = () => {
@@ -456,12 +459,21 @@
     $$("[data-section]").forEach((section) => section.classList.toggle("is-active", section.dataset.section === name));
     $$("[data-section-target]").forEach((button) => button.classList.toggle("is-active", button.dataset.sectionTarget === name));
     $("[data-sidebar]").classList.remove("is-open");
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    $("[data-sidebar-toggle]").setAttribute("aria-expanded", "false");
+    window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
   };
 
   $$("[data-section-target]").forEach((button) => button.addEventListener("click", () => openSection(button.dataset.sectionTarget)));
   $$("[data-section-jump]").forEach((button) => button.addEventListener("click", () => openSection(button.dataset.sectionJump)));
-  $("[data-sidebar-toggle]").addEventListener("click", () => $("[data-sidebar]").classList.toggle("is-open"));
+  $("[data-sidebar-toggle]").addEventListener("click", (event) => {
+    const open = $("[data-sidebar]").classList.toggle("is-open");
+    event.currentTarget.setAttribute("aria-expanded", String(open));
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    $("[data-sidebar]").classList.remove("is-open");
+    $("[data-sidebar-toggle]").setAttribute("aria-expanded", "false");
+  });
 
   document.addEventListener("input", (event) => {
     const field = event.target.closest("[data-path]");
@@ -509,7 +521,7 @@
     canvas.width = width;
     canvas.height = height;
     const context = canvas.getContext("2d", { alpha: false });
-    context.fillStyle = "#f3f0e8";
+    context.fillStyle = "#f5f6f8";
     context.fillRect(0, 0, width, height);
     context.drawImage(bitmap, 0, 0, width, height);
     bitmap.close();
@@ -543,7 +555,7 @@
     image: "",
     imageAlt: "",
     url: "",
-    visual: "yellow"
+    visual: "blue"
   });
 
   $("[data-add-project]").addEventListener("click", () => {
@@ -551,7 +563,7 @@
     renderProjects();
     updateDirtyState();
     openSection("projects");
-    requestAnimationFrame(() => $$("[data-project-editor]").at(-1)?.scrollIntoView({ behavior: "smooth", block: "start" }));
+    requestAnimationFrame(() => $$("[data-project-editor]").at(-1)?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }));
   });
 
   $("[data-add-service]").addEventListener("click", () => {
@@ -695,7 +707,7 @@
       }
       root.innerHTML = commits.map((commit, index) => `
         <article class="history-item">
-          <div><time>${escapeHtml(formatDate(commit.commit.author.date))}</time><code>${escapeHtml(commit.sha.slice(0, 9))}</code></div>
+          <div><time>${escapeHtml(formatDate(commit.commit.author.date))}</time></div>
           <div><b>${escapeHtml(commit.commit.message.split("\n")[0])}</b><span>${index === 0 ? "현재 게시 기준" : "이전 버전"}</span></div>
           <button type="button" data-restore-sha="${escapeHtml(commit.sha)}">${index === 0 ? "다시 불러오기" : "내용 불러오기"}</button>
         </article>`).join("");
@@ -781,9 +793,9 @@
     } catch (error) {
       if (error.status === 401) {
         sessionStorage.removeItem(SESSION_KEY);
-        toast("토큰이 만료되었습니다. 다시 연결해 주세요.", "error", 7000);
+        toast("관리 권한이 만료되었습니다. 관리 키를 다시 입력해 주세요.", "error", 7000);
       } else if (error.status === 403) {
-        toast("저장소 쓰기 권한이 없습니다. 토큰 권한을 확인해 주세요.", "error", 7000);
+        toast("사이트 수정 권한이 없습니다. 관리 키의 권한을 확인해 주세요.", "error", 7000);
       } else if (error.status === 409 || error.status === 422) {
         toast(error.message || "다른 변경과 충돌했습니다. 새로고침 후 다시 시도해 주세요.", "error", 8000);
       } else {
