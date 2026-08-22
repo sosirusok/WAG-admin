@@ -6,7 +6,6 @@
   const BRANCH = "main";
   const CONTENT_PATH = "data/site.json";
   const API_ROOT = "https://api.github.com";
-  const SESSION_KEY = "wag-admin-session-token";
   const DRAFT_KEY = "wag-admin-content-draft-v1";
 
   const $ = (selector, root = document) => root.querySelector(selector);
@@ -201,6 +200,17 @@
     }
   };
 
+  const assertEditableContent = (candidate) => {
+    const validObject = (value) => value && typeof value === "object" && !Array.isArray(value);
+    const valid = validObject(candidate)
+      && candidate?.meta?.version === 3
+      && validObject(candidate.meta)
+      && validObject(candidate.brand)
+      && validObject(candidate.contact)
+      && ["projects", "services", "capabilities", "process", "faq"].every((key) => Array.isArray(candidate[key]));
+    if (!valid) throw new ApiError(422, "현재 관리 도구에서 지원하지 않는 콘텐츠 형식입니다. 최신 사이트 내용을 확인해 주세요.");
+  };
+
   const loadRepositoryContent = async () => {
     const ref = await api(`/repos/${OWNER}/${REPO}/git/ref/heads/${BRANCH}`);
     baseHead = ref.object.sha;
@@ -208,13 +218,14 @@
     baseTree = commit.tree.sha;
     const file = await api(`/repos/${OWNER}/${REPO}/contents/${CONTENT_PATH}?ref=${encodeURIComponent(baseHead)}`);
     const parsed = JSON.parse(decodeBase64Utf8(file.content));
+    assertEditableContent(parsed);
     content = parsed;
     originalContent = clone(parsed);
     pendingUploads.clear();
     dirty = false;
   };
 
-  const connect = async (candidateToken, remember) => {
+  const connect = async (candidateToken) => {
     token = candidateToken.trim();
     if (token.length < 20) throw new ApiError(401, "올바른 관리 키를 입력해 주세요.");
     showLoading("관리 권한을 확인하는 중입니다.");
@@ -228,8 +239,6 @@
     }
     loadingText.textContent = "사이트 내용을 불러오는 중입니다.";
     await loadRepositoryContent();
-    if (remember) sessionStorage.setItem(SESSION_KEY, token);
-    else sessionStorage.removeItem(SESSION_KEY);
     tokenInput.value = "";
     authView.hidden = true;
     adminView.hidden = false;
@@ -239,6 +248,7 @@
     avatar.alt = `${currentUser.login} 프로필`;
     renderAll();
     checkSavedDraft();
+    openSection(sectionFromHash(), { updateHash: false, scroll: false });
     hideLoading();
   };
 
@@ -255,10 +265,9 @@
     authError.textContent = "";
     connectButton.disabled = true;
     try {
-      await connect(tokenInput.value, tokenForm.elements.remember.checked);
+      await connect(tokenInput.value);
     } catch (error) {
       token = "";
-      sessionStorage.removeItem(SESSION_KEY);
       authError.textContent = readableAuthError(error);
       hideLoading();
     } finally {
@@ -270,21 +279,33 @@
     const visible = tokenInput.type === "text";
     tokenInput.type = visible ? "password" : "text";
     event.currentTarget.textContent = visible ? "보기" : "숨김";
+    event.currentTarget.setAttribute("aria-pressed", String(!visible));
+    event.currentTarget.setAttribute("aria-label", visible ? "관리 키 표시" : "관리 키 숨기기");
   });
 
-  const inputField = ({ label, path, value, type = "text", help = "", full = false, max = 0, placeholder = "" }) => `
-    <div class="field${full ? " full" : ""}">
-      <label>${escapeHtml(label)}${max ? `<small>${String(value || "").length} / ${max}</small>` : ""}</label>
-      <input type="${escapeHtml(type)}" data-path="${escapeHtml(path)}" value="${escapeHtml(value)}"${max ? ` maxlength="${max}"` : ""}${placeholder ? ` placeholder="${escapeHtml(placeholder)}"` : ""}>
-      ${help ? `<p class="field-help">${escapeHtml(help)}</p>` : ""}
-    </div>`;
+  const controlId = (path) => `field-${String(path).replace(/[^a-zA-Z0-9_-]+/g, "-")}`;
 
-  const textareaField = ({ label, path, value, help = "", full = true, max = 0, short = false }) => `
-    <div class="field${full ? " full" : ""}">
-      <label>${escapeHtml(label)}${max ? `<small>${String(value || "").length} / ${max}</small>` : ""}</label>
-      <textarea class="${short ? "short" : ""}" data-path="${escapeHtml(path)}"${max ? ` maxlength="${max}"` : ""}>${escapeHtml(value)}</textarea>
-      ${help ? `<p class="field-help">${escapeHtml(help)}</p>` : ""}
-    </div>`;
+  const inputField = ({ label, path, value, type = "text", help = "", full = false, max = 0, placeholder = "" }) => {
+    const id = controlId(path);
+    const helpId = `${id}-help`;
+    return `
+      <div class="field${full ? " full" : ""}">
+        <label for="${id}">${escapeHtml(label)}${max ? `<small aria-hidden="true">${String(value || "").length} / ${max}</small>` : ""}</label>
+        <input id="${id}" type="${escapeHtml(type)}" data-path="${escapeHtml(path)}" value="${escapeHtml(value)}"${max ? ` maxlength="${max}"` : ""}${placeholder ? ` placeholder="${escapeHtml(placeholder)}"` : ""}${help ? ` aria-describedby="${helpId}"` : ""}>
+        ${help ? `<p class="field-help" id="${helpId}">${escapeHtml(help)}</p>` : ""}
+      </div>`;
+  };
+
+  const textareaField = ({ label, path, value, help = "", full = true, max = 0, short = false }) => {
+    const id = controlId(path);
+    const helpId = `${id}-help`;
+    return `
+      <div class="field${full ? " full" : ""}">
+        <label for="${id}">${escapeHtml(label)}${max ? `<small aria-hidden="true">${String(value || "").length} / ${max}</small>` : ""}</label>
+        <textarea id="${id}" class="${short ? "short" : ""}" data-path="${escapeHtml(path)}"${max ? ` maxlength="${max}"` : ""}${help ? ` aria-describedby="${helpId}"` : ""}>${escapeHtml(value)}</textarea>
+        ${help ? `<p class="field-help" id="${helpId}">${escapeHtml(help)}</p>` : ""}
+      </div>`;
+  };
 
   const editorCard = (title, subtitle, body, actions = "") => `
     <article class="editor-card">
@@ -325,10 +346,13 @@
     ].join("");
   };
 
-  const renderItems = (items, arrayPath) => `
+  const renderItems = (items, arrayPath, groupLabel = "항목") => `
     <div class="items-editor">
-      ${(items || []).map((item, index) => `<div class="item-row"><input data-path="${escapeHtml(`${arrayPath}.${index}`)}" value="${escapeHtml(item)}"><button type="button" data-action="remove-array-item" data-array-path="${escapeHtml(arrayPath)}" data-index="${index}" aria-label="항목 삭제">×</button></div>`).join("")}
-      <button class="add-item-button" type="button" data-action="add-array-item" data-array-path="${escapeHtml(arrayPath)}">＋ 항목 추가</button>
+      ${(items || []).map((item, index) => {
+        const path = `${arrayPath}.${index}`;
+        return `<div class="item-row"><input id="${controlId(path)}" data-path="${escapeHtml(path)}" value="${escapeHtml(item)}" aria-label="${escapeHtml(`${groupLabel} ${index + 1}`)}"><button type="button" data-action="remove-array-item" data-array-path="${escapeHtml(arrayPath)}" data-index="${index}" aria-label="${escapeHtml(`${groupLabel} ${index + 1} 삭제`)}">×</button></div>`;
+      }).join("")}
+      <button class="add-item-button" type="button" data-action="add-array-item" data-array-path="${escapeHtml(arrayPath)}" aria-label="${escapeHtml(`${groupLabel} 항목 추가`)}">＋ 항목 추가</button>
     </div>`;
 
   const moveActions = (collection, index, length, allowDelete = true) => `
@@ -350,9 +374,9 @@
         ${inputField({ label: "서비스 이름", path: `services.${index}.title`, value: service.title, max: 18 })}
         ${inputField({ label: "짧은 소개", path: `services.${index}.subtitle`, value: service.subtitle, max: 40 })}
         ${textareaField({ label: "설명", path: `services.${index}.description`, value: service.description, max: 180 })}
-        <div class="field full"><label>핵심 구축</label>${renderItems(service.items || [], `services.${index}.items`)}</div>
-        <div class="field full"><label>고급 기능</label>${renderItems(service.advanced || [], `services.${index}.advanced`)}</div>
-        <div class="field full"><label>운영과 인프라</label>${renderItems(service.operations || [], `services.${index}.operations`)}</div>
+        <div class="field full"><div class="field-label">핵심 구축</div>${renderItems(service.items || [], `services.${index}.items`, "핵심 구축")}</div>
+        <div class="field full"><div class="field-label">고급 기능</div>${renderItems(service.advanced || [], `services.${index}.advanced`, "고급 기능")}</div>
+        <div class="field full"><div class="field-label">운영과 인프라</div>${renderItems(service.operations || [], `services.${index}.operations`, "운영과 인프라")}</div>
       </div>`,
       moveActions("services", index, content.services.length)
     )).join("");
@@ -378,9 +402,9 @@
           <div>
             <div class="image-actions">
               <label class="image-upload-label">이미지 선택<input type="file" accept="image/jpeg,image/png,image/webp" data-project-image="${escapeHtml(project.id)}"></label>
-              <button class="image-remove" type="button" data-action="remove-image" data-project-id="${escapeHtml(project.id)}">삭제</button>
+              <button class="image-remove" type="button" data-action="remove-image" data-project-id="${escapeHtml(project.id)}" aria-label="${escapeHtml(`${project.title || "작업"} 이미지 삭제`)}">삭제</button>
             </div>
-            <p class="image-note">JPG, PNG, WebP. 긴 변 1800px 이하의 WebP로 자동 최적화합니다.</p>
+            <p class="image-note">JPG, PNG, WebP. 1800 × 1200px 범위의 WebP로 자동 최적화합니다.</p>
           </div>
         </div>
         <div class="project-editor-main">
@@ -397,14 +421,14 @@
               ${inputField({ label: "작업 제목", path: `projects.${index}.title`, value: project.title, max: 50, full: true })}
               ${inputField({ label: "분류", path: `projects.${index}.category`, value: project.category, max: 30 })}
               ${inputField({ label: "연도", path: `projects.${index}.year`, value: project.year, max: 6 })}
-              <div class="field"><label>기본 그래픽 색상</label><select data-path="projects.${index}.visual"><option value="yellow"${project.visual === "yellow" ? " selected" : ""}>노랑</option><option value="blue"${project.visual === "blue" ? " selected" : ""}>파랑</option><option value="paper"${project.visual === "paper" ? " selected" : ""}>밝은색</option></select></div>
+              <div class="field"><label for="field-projects-${index}-visual">기본 그래픽 색상</label><select id="field-projects-${index}-visual" data-path="projects.${index}.visual"><option value="yellow"${project.visual === "yellow" ? " selected" : ""}>노랑</option><option value="blue"${project.visual === "blue" ? " selected" : ""}>파랑</option><option value="paper"${project.visual === "paper" ? " selected" : ""}>밝은색</option></select></div>
               ${textareaField({ label: "목록 소개", path: `projects.${index}.summary`, value: project.summary, max: 220 })}
               ${textareaField({ label: "고객의 문제", path: `projects.${index}.problem`, value: project.problem, max: 260 })}
               ${textareaField({ label: "구축 내용", path: `projects.${index}.solution`, value: project.solution, max: 260 })}
               ${textareaField({ label: "완성 결과", path: `projects.${index}.result`, value: project.result, max: 260 })}
               ${inputField({ label: "이미지 설명", path: `projects.${index}.imageAlt`, value: project.imageAlt || "", max: 100, full: true, help: "이미지를 사용하는 경우 화면을 볼 수 없는 방문자를 위해 반드시 입력합니다." })}
               ${inputField({ label: "외부 사이트 주소", path: `projects.${index}.url`, value: project.url || "", type: "url", full: true, help: "공개할 주소가 없다면 비워 두세요." })}
-              <div class="field full"><label>구현 기능</label>${renderItems(project.features, `projects.${index}.features`)}</div>
+              <div class="field full"><div class="field-label">구현 기능</div>${renderItems(project.features, `projects.${index}.features`, "구현 기능")}</div>
             </div>
           </div>
         </div>
@@ -457,24 +481,45 @@
     updateDirtyState();
   };
 
-  const openSection = (name) => {
-    $$("[data-section]").forEach((section) => section.classList.toggle("is-active", section.dataset.section === name));
-    $$("[data-section-target]").forEach((button) => button.classList.toggle("is-active", button.dataset.sectionTarget === name));
+  const SECTION_NAMES = new Set($$("[data-section]").map((section) => section.dataset.section));
+  const sectionFromHash = () => {
+    const candidate = window.location.hash.slice(1);
+    return SECTION_NAMES.has(candidate) ? candidate : "dashboard";
+  };
+
+  const openSection = (name, { updateHash = true, scroll = true } = {}) => {
+    const next = SECTION_NAMES.has(name) ? name : "dashboard";
+    $$("[data-section]").forEach((section) => section.classList.toggle("is-active", section.dataset.section === next));
+    $$("[data-section-target]").forEach((button) => {
+      const active = button.dataset.sectionTarget === next;
+      button.classList.toggle("is-active", active);
+      if (active) button.setAttribute("aria-current", "page");
+      else button.removeAttribute("aria-current");
+    });
     $("[data-sidebar]").classList.remove("is-open");
     $("[data-sidebar-toggle]").setAttribute("aria-expanded", "false");
-    window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    $("[data-sidebar-toggle]").setAttribute("aria-label", "관리 메뉴 열기");
+    if (updateHash && window.location.hash !== `#${next}`) history.pushState(null, "", `#${next}`);
+    if (scroll) window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
   };
 
   $$("[data-section-target]").forEach((button) => button.addEventListener("click", () => openSection(button.dataset.sectionTarget)));
   $$("[data-section-jump]").forEach((button) => button.addEventListener("click", () => openSection(button.dataset.sectionJump)));
+  $(".admin-logo").addEventListener("click", (event) => {
+    event.preventDefault();
+    openSection("dashboard");
+  });
+  window.addEventListener("popstate", () => openSection(sectionFromHash(), { updateHash: false }));
   $("[data-sidebar-toggle]").addEventListener("click", (event) => {
     const open = $("[data-sidebar]").classList.toggle("is-open");
     event.currentTarget.setAttribute("aria-expanded", String(open));
+    event.currentTarget.setAttribute("aria-label", open ? "관리 메뉴 닫기" : "관리 메뉴 열기");
   });
   document.addEventListener("keydown", (event) => {
     if (event.key !== "Escape") return;
     $("[data-sidebar]").classList.remove("is-open");
     $("[data-sidebar-toggle]").setAttribute("aria-expanded", "false");
+    $("[data-sidebar-toggle]").setAttribute("aria-label", "관리 메뉴 열기");
   });
 
   document.addEventListener("input", (event) => {
@@ -497,6 +542,7 @@
       showLoading("이미지를 최적화하는 중입니다.");
       const optimized = await optimizeImage(fileInput.files[0]);
       const path = `assets/uploads/${project.id}-${Date.now()}.webp`;
+      if (pendingUploads.has(project.image)) pendingUploads.delete(project.image);
       pendingUploads.set(path, optimized);
       project.image = path;
       if (!project.imageAlt) project.imageAlt = `${project.title} 화면`;
@@ -640,47 +686,129 @@
     updateDirtyState();
   });
 
-  const validateContent = () => {
+  const validateContent = (candidate = content) => {
     const errors = [];
-    const required = (value, label) => { if (!String(value || "").trim()) errors.push(`${label}을 입력해 주세요.`); };
-    required(content.meta.title, "사이트 제목");
-    required(content.meta.description, "사이트 설명");
-    required(content.brand.headlineTop, "첫 화면 제목");
-    required(content.contact.owner, "운영자");
-    required(content.contact.phone, "전화번호");
-    if (String(content.contact.phone).replace(/\D/g, "").length < 9) errors.push("전화번호를 다시 확인해 주세요.");
+    const required = (value, label) => {
+      if (typeof value !== "string" || !value.trim()) errors.push(`${label}을 입력해 주세요.`);
+    };
+    const stringArray = (value, label, { allowEmpty = false } = {}) => {
+      if (!Array.isArray(value) || (!allowEmpty && value.length < 1) || value.some((item) => typeof item !== "string" || !item.trim())) {
+        errors.push(`${label}에 빈 항목 없이 한 개 이상 입력해 주세요.`);
+      }
+    };
+    const projects = Array.isArray(candidate?.projects) ? candidate.projects : [];
+    const services = Array.isArray(candidate?.services) ? candidate.services : [];
+    const capabilities = Array.isArray(candidate?.capabilities) ? candidate.capabilities : [];
+    const processSteps = Array.isArray(candidate?.process) ? candidate.process : [];
+    const faqItems = Array.isArray(candidate?.faq) ? candidate.faq : [];
+
+    if (candidate?.meta?.version !== 3) errors.push("지원하지 않는 콘텐츠 버전입니다. 최신 사이트 내용을 다시 불러와 주세요.");
+    required(candidate?.meta?.title, "사이트 제목");
+    required(candidate?.meta?.description, "사이트 설명");
+    required(candidate?.brand?.name, "브랜드 이름");
+    required(candidate?.brand?.headlineTop, "첫 화면 제목");
+    required(candidate?.contact?.owner, "운영자");
+    required(candidate?.contact?.phone, "전화번호");
+    if (String(candidate?.contact?.phone || "").replace(/\D/g, "").length < 9) errors.push("전화번호를 다시 확인해 주세요.");
     try {
-      const url = new URL(content.contact.kakao);
+      const url = new URL(candidate?.contact?.kakao);
       if (url.protocol !== "https:") throw new Error();
     } catch { errors.push("카카오 상담 주소는 https://로 시작해야 합니다."); }
-    if (!content.services.length) errors.push("서비스를 한 개 이상 등록해 주세요.");
+
+    if (!Array.isArray(candidate?.projects)) errors.push("작업 사례 데이터 형식이 올바르지 않습니다.");
+    if (!Array.isArray(candidate?.services)) errors.push("서비스 데이터 형식이 올바르지 않습니다.");
+    if (!Array.isArray(candidate?.capabilities)) errors.push("기능 목록 데이터 형식이 올바르지 않습니다.");
+    if (!Array.isArray(candidate?.process)) errors.push("진행 절차 데이터 형식이 올바르지 않습니다.");
+    if (!Array.isArray(candidate?.faq)) errors.push("자주 묻는 질문 데이터 형식이 올바르지 않습니다.");
+
+    if (!services.length) errors.push("서비스를 한 개 이상 등록해 주세요.");
     const serviceIds = new Set();
-    content.services.forEach((service, index) => {
-      required(service.title, `서비스 ${index + 1}의 이름`);
-      if (serviceIds.has(service.id)) errors.push("서비스 내부 ID가 중복되었습니다.");
-      serviceIds.add(service.id);
+    services.forEach((service, index) => {
+      required(service?.id, `서비스 ${index + 1}의 내부 ID`);
+      required(service?.number, `서비스 ${index + 1}의 번호`);
+      required(service?.title, `서비스 ${index + 1}의 이름`);
+      required(service?.subtitle, `서비스 ${index + 1}의 짧은 소개`);
+      required(service?.description, `서비스 ${index + 1}의 설명`);
+      if (service?.id && !/^[a-z0-9][a-z0-9-]*$/.test(service.id)) errors.push(`서비스 ${index + 1}의 내부 ID 형식이 올바르지 않습니다.`);
+      if (serviceIds.has(service?.id)) errors.push(`서비스 ${index + 1}의 내부 ID가 중복되었습니다.`);
+      serviceIds.add(service?.id);
+      stringArray(service?.items, `서비스 ${index + 1}의 핵심 구축 목록`);
     });
+
     const projectIds = new Set();
-    content.projects.forEach((project, index) => {
-      required(project.id, `작업 ${index + 1}의 내부 ID`);
-      if (projectIds.has(project.id)) errors.push(`작업 ${index + 1}의 내부 ID가 중복되었습니다.`);
-      projectIds.add(project.id);
-      if (project.published) {
-        required(project.title, `공개 작업 ${index + 1}의 제목`);
-        required(project.category, `공개 작업 ${index + 1}의 분류`);
-        required(project.summary, `공개 작업 ${index + 1}의 소개`);
-        required(project.problem, `공개 작업 ${index + 1}의 문제 설명`);
-        required(project.solution, `공개 작업 ${index + 1}의 구축 내용`);
-        required(project.result, `공개 작업 ${index + 1}의 결과`);
-        if (project.image) required(project.imageAlt, `공개 작업 ${index + 1}의 이미지 설명`);
+    projects.forEach((project, index) => {
+      required(project?.id, `작업 ${index + 1}의 내부 ID`);
+      required(project?.title, `작업 ${index + 1}의 제목`);
+      if (project?.id && !/^[a-z0-9][a-z0-9-]*$/.test(project.id)) errors.push(`작업 ${index + 1}의 내부 ID 형식이 올바르지 않습니다.`);
+      if (projectIds.has(project?.id)) errors.push(`작업 ${index + 1}의 내부 ID가 중복되었습니다.`);
+      projectIds.add(project?.id);
+      if (project?.published) {
+        required(project?.category, `공개 작업 ${index + 1}의 분류`);
+        required(project?.year, `공개 작업 ${index + 1}의 연도`);
+        required(project?.summary, `공개 작업 ${index + 1}의 소개`);
+        required(project?.problem, `공개 작업 ${index + 1}의 문제 설명`);
+        required(project?.solution, `공개 작업 ${index + 1}의 구축 내용`);
+        required(project?.result, `공개 작업 ${index + 1}의 결과`);
+        required(project?.image, `공개 작업 ${index + 1}의 이미지`);
+        required(project?.imageAlt, `공개 작업 ${index + 1}의 이미지 설명`);
+        stringArray(project?.features, `공개 작업 ${index + 1}의 구현 기능`);
       }
-      if (project.url) {
+      if (project?.featured && !project?.published) errors.push(`작업 ${index + 1}은 사이트에 공개한 뒤 대표 작업으로 설정해 주세요.`);
+      if (project?.image) {
+        if (project.image.startsWith("assets/")) {
+          if (!/^assets\/[a-zA-Z0-9_./-]+$/.test(project.image) || project.image.includes("..")) errors.push(`작업 ${index + 1}의 이미지 경로가 올바르지 않습니다.`);
+        } else {
+          try {
+            const imageUrl = new URL(project.image);
+            if (imageUrl.protocol !== "https:") throw new Error();
+          } catch { errors.push(`작업 ${index + 1}의 이미지는 안전한 사이트 이미지 경로나 HTTPS 주소여야 합니다.`); }
+        }
+      }
+      if (project?.url) {
         try {
           const url = new URL(project.url);
-          if (!["http:", "https:"].includes(url.protocol)) throw new Error();
-        } catch { errors.push(`작업 ${index + 1}의 외부 주소를 확인해 주세요.`); }
+          if (url.protocol !== "https:") throw new Error();
+        } catch { errors.push(`작업 ${index + 1}의 외부 주소는 https://로 시작해야 합니다.`); }
       }
     });
+
+    if (!projects.some((project) => project?.published)) errors.push("사이트에 공개할 작업 사례를 한 개 이상 설정해 주세요.");
+    stringArray(capabilities, "기능 목록");
+    if (!processSteps.length) errors.push("진행 절차를 한 개 이상 등록해 주세요.");
+    processSteps.forEach((step, index) => {
+      required(step?.number, `진행 절차 ${index + 1}의 번호`);
+      required(step?.title, `진행 절차 ${index + 1}의 이름`);
+      required(step?.description, `진행 절차 ${index + 1}의 설명`);
+    });
+    if (!faqItems.length) errors.push("자주 묻는 질문을 한 개 이상 등록해 주세요.");
+    faqItems.forEach((item, index) => {
+      required(item?.question, `자주 묻는 질문 ${index + 1}의 질문`);
+      required(item?.answer, `자주 묻는 질문 ${index + 1}의 답변`);
+    });
+    return errors;
+  };
+
+  const repositoryFileExists = async (path) => {
+    const candidates = [path, `src/${path}`];
+    for (const candidate of candidates) {
+      const encoded = candidate.split("/").map(encodeURIComponent).join("/");
+      try {
+        await api(`/repos/${OWNER}/${REPO}/contents/${encoded}?ref=${encodeURIComponent(baseHead)}`);
+        return true;
+      } catch (error) {
+        if (error.status !== 404) throw error;
+      }
+    }
+    return false;
+  };
+
+  const validateManagedImages = async () => {
+    const errors = [];
+    const paths = [...new Set((content.projects || [])
+      .filter((project) => typeof project?.image === "string" && project.image.startsWith("assets/") && !pendingUploads.has(project.image))
+      .map((project) => project.image))];
+    const checks = await Promise.all(paths.map(async (path) => ({ path, exists: await repositoryFileExists(path) })));
+    checks.filter((check) => !check.exists).forEach((check) => errors.push(`등록된 이미지 파일을 찾을 수 없습니다: ${check.path}`));
     return errors;
   };
 
@@ -733,7 +861,9 @@
     try {
       showLoading("선택한 버전의 내용을 불러오는 중입니다.");
       const file = await api(`/repos/${OWNER}/${REPO}/contents/${CONTENT_PATH}?ref=${encodeURIComponent(button.dataset.restoreSha)}`);
-      content = JSON.parse(decodeBase64Utf8(file.content));
+      const restored = JSON.parse(decodeBase64Utf8(file.content));
+      assertEditableContent(restored);
+      content = restored;
       pendingUploads.clear();
       renderAll();
       historyDialog.close();
@@ -753,8 +883,15 @@
       return;
     }
     const message = $("[data-commit-message]").value.trim() || "SWAG 콘텐츠 업데이트";
-    showLoading("현재 버전과 충돌이 없는지 확인하는 중입니다.");
+    showLoading("등록된 이미지와 게시 내용을 확인하는 중입니다.");
     try {
+      const imageErrors = await validateManagedImages();
+      if (imageErrors.length) {
+        confirmDialog.close();
+        toast(imageErrors[0], "error", 7000);
+        return;
+      }
+      loadingText.textContent = "현재 버전과 충돌이 없는지 확인하는 중입니다.";
       const latestRef = await api(`/repos/${OWNER}/${REPO}/git/ref/heads/${BRANCH}`);
       if (latestRef.object.sha !== baseHead) {
         throw new ApiError(409, "다른 곳에서 사이트가 수정되었습니다. 새로고침 후 최신 내용을 불러와 주세요.");
@@ -799,7 +936,7 @@
       toast("게시가 완료되었습니다. 사이트에는 잠시 후 자동으로 반영됩니다.", "success", 6500);
     } catch (error) {
       if (error.status === 401) {
-        sessionStorage.removeItem(SESSION_KEY);
+        token = "";
         toast("관리 권한이 만료되었습니다. 관리 키를 다시 입력해 주세요.", "error", 7000);
       } else if (error.status === 403) {
         toast("사이트 수정 권한이 없습니다. 관리 키의 권한을 확인해 주세요.", "error", 7000);
@@ -829,6 +966,7 @@
   $("[data-draft-restore]").addEventListener("click", () => {
     try {
       const saved = JSON.parse($("[data-draft-notice]").dataset.savedDraft);
+      assertEditableContent(saved.content);
       content = saved.content;
       renderAll();
       $("[data-draft-notice]").hidden = true;
@@ -847,7 +985,6 @@
   const logout = () => {
     if (dirty && !window.confirm("게시하지 않은 변경이 있습니다. 연결을 종료할까요?")) return;
     token = "";
-    sessionStorage.removeItem(SESSION_KEY);
     window.location.reload();
   };
 
@@ -864,13 +1001,4 @@
     });
   });
 
-  const existingToken = sessionStorage.getItem(SESSION_KEY);
-  if (existingToken) {
-    connect(existingToken, true).catch((error) => {
-      sessionStorage.removeItem(SESSION_KEY);
-      token = "";
-      authError.textContent = readableAuthError(error);
-      hideLoading();
-    });
-  }
 })();

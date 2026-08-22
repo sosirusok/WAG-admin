@@ -8,6 +8,7 @@
   <meta name="referrer" content="no-referrer">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob: https://raw.githubusercontent.com https://avatars.githubusercontent.com; connect-src https://api.github.com https://raw.githubusercontent.com https://sosirusok.github.io; frame-src https://sosirusok.github.io; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="Pretendard-Regular.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="WantedSansVariable.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="styles.css">
   <title>SWAG Admin</title>
@@ -23,7 +24,7 @@
         <h1>사이트 관리</h1>
         <span>SYSTEM WEB APP GAME</span>
       </div>
-      <figure class="auth-cover" aria-hidden="true"><img src="admin-cover.webp" alt=""></figure>
+      <figure class="auth-cover" aria-hidden="true"><img src="case-catharsis.jpg" alt=""></figure>
     </div>
 
     <main class="auth-panel">
@@ -31,18 +32,14 @@
         <div class="auth-heading">
           <p>관리자 인증</p>
           <h2>관리 권한 설정</h2>
-          <span>처음 한 번만 사이트 관리 키를 입력해 주세요</span>
+          <span>사이트 콘텐츠에 연결할 관리 키를 입력해 주세요</span>
         </div>
         <form class="token-form" data-token-form autocomplete="off">
           <label for="github-token">사이트 관리 키</label>
           <div class="token-input-wrap">
             <input id="github-token" name="token" type="password" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="관리 키 입력" required>
-            <button type="button" data-token-toggle aria-label="관리 키 표시 전환">보기</button>
+            <button type="button" data-token-toggle aria-label="관리 키 표시" aria-pressed="false">보기</button>
           </div>
-          <label class="session-option">
-            <input type="checkbox" name="remember" checked>
-            <span>이 탭을 닫을 때까지 유지</span>
-          </label>
           <button class="connect-button" type="submit" data-connect-button>
             <span>관리 화면 열기</span><span aria-hidden="true">→</span>
           </button>
@@ -60,7 +57,7 @@
 
         <div class="security-note">
           <span aria-hidden="true">◉</span>
-          <p>관리 키는 사이트 코드나 주소에 저장되지 않으며 현재 브라우저 탭 안에서만 사용됩니다</p>
+          <p>관리 키는 저장되지 않으며 현재 페이지의 메모리에서만 사용됩니다 새로고침하거나 페이지를 닫으면 즉시 사라집니다</p>
         </div>
       </div>
     </main>
@@ -69,7 +66,7 @@
   <div class="admin-view" data-admin-view hidden>
     <header class="admin-header">
       <button class="sidebar-toggle" type="button" data-sidebar-toggle aria-label="관리 메뉴 열기" aria-expanded="false"><span></span><span></span></button>
-      <a class="admin-logo" href="#dashboard"><b>SWAG</b><span>ADMIN</span></a>
+      <a class="admin-logo" href="#dashboard" aria-label="SWAG 관리자 대시보드"><b>SWAG</b><span>ADMIN</span></a>
       <div class="sync-state" data-sync-state><i></i><span>내용 불러옴</span></div>
       <div class="header-actions">
         <button type="button" class="text-button" data-history-button>게시 이력</button>
@@ -80,12 +77,12 @@
 
     <aside class="admin-sidebar" data-sidebar>
       <nav aria-label="관리 항목">
-        <button type="button" class="is-active" data-section-target="dashboard"><span>01</span>대시보드</button>
-        <button type="button" data-section-target="basic"><span>02</span>기본 정보</button>
-        <button type="button" data-section-target="services"><span>03</span>서비스</button>
-        <button type="button" data-section-target="projects"><span>04</span>작업 사례</button>
-        <button type="button" data-section-target="process"><span>05</span>진행 절차</button>
-        <button type="button" data-section-target="faq"><span>06</span>자주 묻는 질문</button>
+        <button type="button" class="is-active" data-section-target="dashboard" aria-controls="section-dashboard" aria-current="page"><span>01</span>대시보드</button>
+        <button type="button" data-section-target="basic" aria-controls="section-basic"><span>02</span>기본 정보</button>
+        <button type="button" data-section-target="services" aria-controls="section-services"><span>03</span>서비스</button>
+        <button type="button" data-section-target="projects" aria-controls="section-projects"><span>04</span>작업 사례</button>
+        <button type="button" data-section-target="process" aria-controls="section-process"><span>05</span>진행 절차</button>
+        <button type="button" data-section-target="faq" aria-controls="section-faq"><span>06</span>자주 묻는 질문</button>
       </nav>
       <div class="sidebar-account">
         <img data-user-avatar alt="">
@@ -94,7 +91,7 @@
     </aside>
 
     <main class="admin-main">
-      <section class="admin-section is-active" data-section="dashboard">
+      <section class="admin-section is-active" id="section-dashboard" data-section="dashboard">
         <div class="page-heading">
           <p>OVERVIEW</p>
           <h1>SWAG 운영 현황</h1>
@@ -124,27 +121,27 @@
         </div>
       </section>
 
-      <section class="admin-section" data-section="basic">
+      <section class="admin-section" id="section-basic" data-section="basic">
         <div class="page-heading"><p>SITE COPY</p><h1>기본 정보</h1><span>첫 화면 문구와 연락처를 수정합니다</span></div>
         <div class="editor-stack" data-basic-editor></div>
       </section>
 
-      <section class="admin-section" data-section="services">
+      <section class="admin-section" id="section-services" data-section="services">
         <div class="page-heading with-action"><div><p>SERVICE</p><h1>서비스</h1><span>핵심 구축, 고급 기능과 운영 인프라를 관리합니다</span></div><button class="outline-button" type="button" data-add-service>서비스 추가</button></div>
         <div class="editor-stack" data-services-editor></div>
       </section>
 
-      <section class="admin-section" data-section="projects">
+      <section class="admin-section" id="section-projects" data-section="projects">
         <div class="page-heading with-action"><div><p>PORTFOLIO</p><h1>작업 사례</h1><span>사례를 추가하고 공개 여부와 노출 순서를 정합니다</span></div><button class="primary-small-button" type="button" data-add-project>＋ 작업 추가</button></div>
         <div class="project-editor-list" data-projects-editor></div>
       </section>
 
-      <section class="admin-section" data-section="process">
+      <section class="admin-section" id="section-process" data-section="process">
         <div class="page-heading with-action"><div><p>PROCESS</p><h1>진행 절차</h1><span>상담부터 배포까지 고객에게 안내할 과정을 관리합니다</span></div><button class="outline-button" type="button" data-add-process>단계 추가</button></div>
         <div class="editor-stack" data-process-editor></div>
       </section>
 
-      <section class="admin-section" data-section="faq">
+      <section class="admin-section" id="section-faq" data-section="faq">
         <div class="page-heading with-action"><div><p>FAQ</p><h1>자주 묻는 질문</h1><span>문의 전에 고객이 확인할 질문과 답변을 관리합니다</span></div><button class="outline-button" type="button" data-add-faq>질문 추가</button></div>
         <div class="editor-stack" data-faq-editor></div>
       </section>
@@ -181,7 +178,7 @@
   </dialog>
 
   <div class="toast-region" aria-live="polite" aria-atomic="true" data-toast-region></div>
-  <div class="loading-screen" data-loading-screen hidden><div class="loading-mark">SWAG</div><p data-loading-text>사이트 내용을 불러오는 중입니다</p></div>
+  <div class="loading-screen" data-loading-screen role="status" aria-live="polite" aria-busy="true" hidden><div class="loading-mark">SWAG</div><p data-loading-text>사이트 내용을 불러오는 중입니다</p></div>
 
   <script src="admin.js" defer></script>
 </body>
