@@ -313,8 +313,6 @@
           ${inputField({ label: "제목 마지막 줄", path: "brand.headlineBottom", value: content.brand.headlineBottom, max: 26 })}
           ${inputField({ label: "문의 버튼", path: "brand.primaryCta", value: content.brand.primaryCta, max: 24 })}
           ${textareaField({ label: "첫 화면 설명", path: "brand.description", value: content.brand.description, max: 220 })}
-          ${inputField({ label: "브랜드 유래", path: "brand.origin", value: content.brand.origin || "", max: 40, full: true })}
-          ${textareaField({ label: "브랜드 이야기", path: "brand.story", value: content.brand.story || "", max: 180 })}
           ${textareaField({ label: "문의 영역 안내", path: "contact.responseNote", value: content.contact.responseNote, max: 180, short: true })}
         </div>`),
       editorCard("연락처", "사이트 푸터와 문의 영역에 표시됩니다.", `
@@ -363,7 +361,7 @@
   const projectCover = (project) => {
     const source = fileUrl(project.image);
     if (source) return `<img src="${escapeHtml(source)}" alt="${escapeHtml(project.imageAlt || project.title)}">`;
-    return `<div class="project-cover-placeholder"><span>WAG / PROJECT</span><b>${escapeHtml(project.title || "NEW WORK")}</b></div>`;
+    return `<div class="project-cover-placeholder"><span>SWAG / PROJECT</span><b>${escapeHtml(project.title || "NEW WORK")}</b></div>`;
   };
 
   const renderProjects = () => {
@@ -648,8 +646,6 @@
     required(content.meta.title, "사이트 제목");
     required(content.meta.description, "사이트 설명");
     required(content.brand.headlineTop, "첫 화면 제목");
-    required(content.brand.origin, "브랜드 유래");
-    required(content.brand.story, "브랜드 이야기");
     required(content.contact.owner, "운영자");
     required(content.contact.phone, "전화번호");
     if (String(content.contact.phone).replace(/\D/g, "").length < 9) errors.push("전화번호를 다시 확인해 주세요.");
@@ -691,10 +687,10 @@
   const previewDraft = () => {
     const visible = content.projects.filter((project) => project.published).slice(0, 4);
     $("[data-draft-preview]").innerHTML = `
-      <div class="preview-brand"><b>${escapeHtml(content.brand.name)}</b><span>${escapeHtml(content.brand.expansion)}</span></div>
+      <div class="preview-brand"><b>SWAG</b><span>SYSTEM WEB APP GAME</span></div>
       <div class="preview-hero">
-        <div><small>${escapeHtml(content.brand.availability)}</small><h2>${escapeHtml(content.brand.headlineTop)}<strong>${escapeHtml(content.brand.headlineFocus)}</strong>${escapeHtml(content.brand.headlineBottom)}</h2><p>${escapeHtml(content.brand.description)}</p><em>${escapeHtml(content.brand.origin || "")}</em></div>
-        <div class="preview-hero-art">WAG</div>
+        <div><small>${escapeHtml(content.brand.availability)}</small><h2>${escapeHtml(content.brand.headlineTop)}<strong>${escapeHtml(content.brand.headlineFocus)}</strong>${escapeHtml(content.brand.headlineBottom)}</h2><p>${escapeHtml(content.brand.description)}</p></div>
+        <div class="preview-hero-art">SWAG</div>
       </div>
       <div class="preview-projects">${visible.length ? visible.map((project) => `<article class="preview-project"><span>${escapeHtml(project.category)} / ${escapeHtml(project.year)}</span><h3>${escapeHtml(project.title)}</h3><p>${escapeHtml(project.summary)}</p></article>`).join("") : `<article class="preview-project"><span>PORTFOLIO</span><h3>공개 작업 없음</h3><p>작업 사례에서 사이트 공개를 켜면 이곳에 표시됩니다.</p></article>`}</div>`;
     previewDialog.showModal();
@@ -756,7 +752,7 @@
       toast(errors[0], "error", 6000);
       return;
     }
-    const message = $("[data-commit-message]").value.trim() || "WAG 콘텐츠 업데이트";
+    const message = $("[data-commit-message]").value.trim() || "SWAG 콘텐츠 업데이트";
     showLoading("현재 버전과 충돌이 없는지 확인하는 중입니다.");
     try {
       const latestRef = await api(`/repos/${OWNER}/${REPO}/git/ref/heads/${BRANCH}`);
