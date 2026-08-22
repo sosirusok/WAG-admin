@@ -795,3 +795,15 @@ dialog::backdrop { background: rgba(0,0,0,.76); backdrop-filter: blur(4px); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* WAG admin visual alignment */
+:root{--ink:#11161c;--ink-2:#1b2530;--paper:#f5f7f8;--muted:#65717c;--acid:#d8e2ea;--blue:#49677f;--line:rgba(17,22,28,.13)}
+.auth-brand{background:#111b27}.auth-brand::after{content:"";position:absolute;z-index:-1;right:-18%;bottom:-28%;width:620px;height:620px;border:1px solid rgba(216,226,234,.18);border-radius:50%;box-shadow:0 0 0 80px rgba(216,226,234,.025),0 0 0 160px rgba(216,226,234,.018)}
+.auth-cover img{animation:admin-cover-drift 18s ease-in-out infinite alternate}.auth-statement>span{line-height:1.75}.auth-panel{background:radial-gradient(circle at 20% 10%,rgba(73,103,127,.07),transparent 23rem),var(--paper)}
+.connect-button{border-radius:999px;transition:transform .2s ease,background .2s ease}.connect-button:hover{transform:translateY(-1px)}.token-input-wrap input{border-radius:12px}.token-input-wrap button{border-radius:0 12px 12px 0}
+.admin-header,.admin-sidebar,.publish-bar{background:#111b27}.logout-button,.admin-sidebar nav button.is-active,.publish-button{color:#111b27;background:#d8e2ea}.metric-grid .metric-accent,.project-cover-placeholder{background:#e1e8ed}.project-order,.confirm-mark{background:#d8e2ea}
+.editor-card,.project-editor,.dashboard-card,.metric-grid article{box-shadow:0 10px 35px rgba(24,34,44,.035);transition:border-color .2s ease,box-shadow .2s ease}.editor-card:hover,.project-editor:hover{border-color:rgba(73,103,127,.3);box-shadow:0 15px 45px rgba(24,34,44,.065)}
+.field.full+.field.full{margin-top:4px;padding-top:22px;border-top:1px solid rgba(17,22,28,.08)}.field-help{color:#65717c}.draft-preview{background:#f5f7f8}.preview-hero h2 strong{background:#dfe7ed}.preview-hero-art{background:#111b27;border-color:#d8e2ea}.preview-hero em{display:inline-flex;margin-top:20px;padding:8px 11px;color:#53626e;background:#edf1f4;border-radius:999px;font-size:11px;font-style:normal}.preview-project span{color:#879baa}
+.publish-button:disabled{background:#29333d;border-color:#29333d}.publish-bar>div:first-child i.is-dirty{background:#d8e2ea;box-shadow:0 0 0 4px rgba(216,226,234,.14)}
+@keyframes admin-cover-drift{from{transform:scale(1.02) translate3d(0,0,0)}to{transform:scale(1.08) translate3d(-1.2%,-.8%,0)}}
+@media(prefers-reduced-motion:reduce){.auth-cover img{animation:none}}
