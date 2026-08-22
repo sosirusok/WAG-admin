@@ -313,6 +313,8 @@
           ${inputField({ label: "제목 마지막 줄", path: "brand.headlineBottom", value: content.brand.headlineBottom, max: 26 })}
           ${inputField({ label: "문의 버튼", path: "brand.primaryCta", value: content.brand.primaryCta, max: 24 })}
           ${textareaField({ label: "첫 화면 설명", path: "brand.description", value: content.brand.description, max: 220 })}
+          ${inputField({ label: "브랜드 유래", path: "brand.origin", value: content.brand.origin || "", max: 40, full: true })}
+          ${textareaField({ label: "브랜드 이야기", path: "brand.story", value: content.brand.story || "", max: 180 })}
           ${textareaField({ label: "문의 영역 안내", path: "contact.responseNote", value: content.contact.responseNote, max: 180, short: true })}
         </div>`),
       editorCard("연락처", "사이트 푸터와 문의 영역에 표시됩니다.", `
@@ -347,10 +349,12 @@
       service.subtitle || "설명을 입력해 주세요.",
       `<div class="field-grid three">
         ${inputField({ label: "번호", path: `services.${index}.number`, value: service.number, max: 4 })}
-        ${inputField({ label: "영문 이름", path: `services.${index}.title`, value: service.title, max: 18 })}
-        ${inputField({ label: "한글 소개", path: `services.${index}.subtitle`, value: service.subtitle, max: 40 })}
+        ${inputField({ label: "서비스 이름", path: `services.${index}.title`, value: service.title, max: 18 })}
+        ${inputField({ label: "짧은 소개", path: `services.${index}.subtitle`, value: service.subtitle, max: 40 })}
         ${textareaField({ label: "설명", path: `services.${index}.description`, value: service.description, max: 180 })}
-        <div class="field full"><label>제공 항목</label>${renderItems(service.items, `services.${index}.items`)}</div>
+        <div class="field full"><label>핵심 구축</label>${renderItems(service.items || [], `services.${index}.items`)}</div>
+        <div class="field full"><label>고급 기능</label>${renderItems(service.advanced || [], `services.${index}.advanced`)}</div>
+        <div class="field full"><label>운영과 인프라</label>${renderItems(service.operations || [], `services.${index}.operations`)}</div>
       </div>`,
       moveActions("services", index, content.services.length)
     )).join("");
@@ -568,7 +572,7 @@
 
   $("[data-add-service]").addEventListener("click", () => {
     const index = content.services.length + 1;
-    content.services.push({ id: `service-${Date.now()}`, number: String(index).padStart(2, "0"), title: "SERVICE", subtitle: "새 서비스", description: "", items: [] });
+    content.services.push({ id: `service-${Date.now()}`, number: String(index).padStart(2, "0"), title: "새 서비스", subtitle: "짧은 소개", description: "", items: [], advanced: [], operations: [] });
     renderServices();
     updateDirtyState();
   });
@@ -598,7 +602,12 @@
     if (!action || !content) return;
     const type = action.dataset.action;
     if (type === "add-array-item") {
-      getByPath(content, action.dataset.arrayPath).push("");
+      let list = getByPath(content, action.dataset.arrayPath);
+      if (!Array.isArray(list)) {
+        setByPath(content, action.dataset.arrayPath, []);
+        list = getByPath(content, action.dataset.arrayPath);
+      }
+      list.push("");
       rerenderCollection(action.dataset.arrayPath.split(".")[0]);
       updateDirtyState();
       return;
@@ -639,6 +648,8 @@
     required(content.meta.title, "사이트 제목");
     required(content.meta.description, "사이트 설명");
     required(content.brand.headlineTop, "첫 화면 제목");
+    required(content.brand.origin, "브랜드 유래");
+    required(content.brand.story, "브랜드 이야기");
     required(content.contact.owner, "운영자");
     required(content.contact.phone, "전화번호");
     if (String(content.contact.phone).replace(/\D/g, "").length < 9) errors.push("전화번호를 다시 확인해 주세요.");
@@ -682,7 +693,7 @@
     $("[data-draft-preview]").innerHTML = `
       <div class="preview-brand"><b>${escapeHtml(content.brand.name)}</b><span>${escapeHtml(content.brand.expansion)}</span></div>
       <div class="preview-hero">
-        <div><small>${escapeHtml(content.brand.availability)}</small><h2>${escapeHtml(content.brand.headlineTop)}<strong>${escapeHtml(content.brand.headlineFocus)}</strong>${escapeHtml(content.brand.headlineBottom)}</h2><p>${escapeHtml(content.brand.description)}</p></div>
+        <div><small>${escapeHtml(content.brand.availability)}</small><h2>${escapeHtml(content.brand.headlineTop)}<strong>${escapeHtml(content.brand.headlineFocus)}</strong>${escapeHtml(content.brand.headlineBottom)}</h2><p>${escapeHtml(content.brand.description)}</p><em>${escapeHtml(content.brand.origin || "")}</em></div>
         <div class="preview-hero-art">WAG</div>
       </div>
       <div class="preview-projects">${visible.length ? visible.map((project) => `<article class="preview-project"><span>${escapeHtml(project.category)} / ${escapeHtml(project.year)}</span><h3>${escapeHtml(project.title)}</h3><p>${escapeHtml(project.summary)}</p></article>`).join("") : `<article class="preview-project"><span>PORTFOLIO</span><h3>공개 작업 없음</h3><p>작업 사례에서 사이트 공개를 켜면 이곳에 표시됩니다.</p></article>`}</div>`;
