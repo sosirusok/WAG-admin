@@ -3,28 +3,32 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#18363a">
+  <meta name="theme-color" content="#0a1122">
   <meta name="robots" content="noindex,nofollow,noarchive">
   <meta name="referrer" content="no-referrer">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob: https://raw.githubusercontent.com https://avatars.githubusercontent.com; connect-src https://api.github.com https://raw.githubusercontent.com https://sosirusok.github.io; frame-src https://sosirusok.github.io; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="preload" href="Pretendard-Regular.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="WantedSansVariable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="SUIT-Variable.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="styles.css">
   <title>SWAG Admin</title>
 </head>
 <body>
   <div class="auth-view" data-auth-view>
     <div class="auth-brand">
+      <div class="auth-backdrop" aria-hidden="true"><i class="auth-blob auth-blob-1"></i><i class="auth-blob auth-blob-2"></i><i class="auth-grid"></i></div>
       <a class="brand" href="https://sosirusok.github.io/WAG/" target="_blank" rel="noopener noreferrer">
-        <span>SWAG</span><em>ADMIN</em>
+        <img src="swag-logo-white.svg" alt="SWAG" width="269" height="66"><em>ADMIN</em>
       </a>
       <div class="auth-statement">
         <p>SWAG CONTENT MANAGER</p>
         <h1>사이트 관리</h1>
-        <span>SYSTEM WEB APP GAME</span>
+        <span>SYSTEM · WEBSITE · APP · GAME</span>
       </div>
-      <figure class="auth-cover" aria-hidden="true"><img src="case-catharsis.jpg" alt=""></figure>
+      <ul class="auth-points" aria-hidden="true">
+        <li><b>✓</b>문구 · 서비스 · 작업 사례 · FAQ 수정</li>
+        <li><b>✓</b>이미지 업로드와 자동 최적화</li>
+        <li><b>✓</b>게시 이력 확인과 되돌리기</li>
+      </ul>
     </div>
 
     <main class="auth-panel">
@@ -66,7 +70,7 @@
   <div class="admin-view" data-admin-view hidden>
     <header class="admin-header">
       <button class="sidebar-toggle" type="button" data-sidebar-toggle aria-label="관리 메뉴 열기" aria-expanded="false"><span></span><span></span></button>
-      <a class="admin-logo" href="#dashboard" aria-label="SWAG 관리자 대시보드"><b>SWAG</b><span>ADMIN</span></a>
+      <a class="admin-logo" href="#dashboard" aria-label="SWAG 관리자 대시보드"><img src="swag-logo.svg" alt="SWAG" width="122" height="30"><span>ADMIN</span></a>
       <div class="sync-state" data-sync-state><i></i><span>내용 불러옴</span></div>
       <div class="header-actions">
         <button type="button" class="text-button" data-history-button>게시 이력</button>
@@ -178,7 +182,7 @@
   </dialog>
 
   <div class="toast-region" aria-live="polite" aria-atomic="true" data-toast-region></div>
-  <div class="loading-screen" data-loading-screen role="status" aria-live="polite" aria-busy="true" hidden><div class="loading-mark">SWAG</div><p data-loading-text>사이트 내용을 불러오는 중입니다</p></div>
+  <div class="loading-screen" data-loading-screen role="status" aria-live="polite" aria-busy="true" hidden><div class="loading-mark"><img src="swag-logo.svg" alt="SWAG" width="163" height="40"><i aria-hidden="true"></i></div><p data-loading-text>사이트 내용을 불러오는 중입니다</p></div>
 
   <script src="admin.js" defer></script>
 </body>

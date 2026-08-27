@@ -1,6 +1,6 @@
 # SWAG Admin
 
-SWAG 고객 사이트의 문구, 서비스, 작업 사례, 진행 절차와 자주 묻는 질문을 관리하는 정적 관리자 도구입니다.
+SWAG 고객 사이트의 문구, 서비스, 작업 사례, 진행 절차와 자주 묻는 질문을 관리하는 정적 관리자 도구입니다. 편집 필드와 게시 검증은 사이트 저장소의 `data/site.json` v47 스키마와 일치합니다.
 
 ## 보안 구조
 
@@ -17,6 +17,6 @@ SWAG 고객 사이트의 문구, 서비스, 작업 사례, 진행 절차와 자�
 
 `https://sosirusok.github.io/WAG-admin/`
 
-## 글꼴
+## 디자인과 글꼴
 
-관리 화면 본문에는 Pretendard를, 브랜드와 주요 제목에는 Wanted Sans Variable을 사용합니다 각 라이선스는 `public/Pretendard-LICENSE.txt`와 `public/WantedSans-LICENSE.txt`에 포함되어 있습니다
+사이트 v47 브랜드(블루 `#2145e6` · 그린 `#5bdf9c`, SWAG 벡터 로고)와 같은 디자인 토큰을 사용합니다. 글꼴은 사이트와 동일한 `SUIT Variable`(SIL Open Font License) 한 계열입니다.

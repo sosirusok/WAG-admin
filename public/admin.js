@@ -322,17 +322,14 @@
       editorCard("검색 및 공유 정보", "검색 결과와 카카오톡 링크 미리보기에 사용됩니다.", `
         <div class="field-grid">
           ${inputField({ label: "사이트 제목", path: "meta.title", value: content.meta.title, max: 60 })}
-          ${inputField({ label: "운영 상태 문구", path: "brand.availability", value: content.brand.availability, max: 30 })}
           ${textareaField({ label: "사이트 설명", path: "meta.description", value: content.meta.description, max: 160 })}
         </div>`),
       editorCard("첫 화면", "고객이 처음 보는 제목과 소개 문구입니다.", `
         <div class="field-grid">
-          ${inputField({ label: "작은 안내 문구", path: "brand.eyebrow", value: content.brand.eyebrow, max: 35 })}
-          ${inputField({ label: "브랜드 영문 표기", path: "brand.expansion", value: content.brand.expansion, max: 30 })}
-          ${inputField({ label: "제목 첫 줄", path: "brand.headlineTop", value: content.brand.headlineTop, max: 26 })}
-          ${inputField({ label: "제목 강조 줄", path: "brand.headlineFocus", value: content.brand.headlineFocus, max: 26 })}
-          ${inputField({ label: "제목 마지막 줄", path: "brand.headlineBottom", value: content.brand.headlineBottom, max: 26 })}
-          ${inputField({ label: "문의 버튼", path: "brand.primaryCta", value: content.brand.primaryCta, max: 24 })}
+          ${inputField({ label: "브랜드 영문 표기", path: "brand.expansion", value: content.brand.expansion, max: 40 })}
+          ${inputField({ label: "제작 분야 한 줄", path: "brand.headline", value: content.brand.headline, max: 40 })}
+          ${inputField({ label: "기본 문의 버튼", path: "brand.primaryCta", value: content.brand.primaryCta, max: 24 })}
+          ${inputField({ label: "보조 버튼", path: "brand.secondaryCta", value: content.brand.secondaryCta, max: 24 })}
           ${textareaField({ label: "첫 화면 설명", path: "brand.description", value: content.brand.description, max: 220 })}
           ${textareaField({ label: "문의 영역 안내", path: "contact.responseNote", value: content.contact.responseNote, max: 180, short: true })}
         </div>`),
@@ -367,16 +364,13 @@
       return;
     }
     root.innerHTML = content.services.map((service, index) => editorCard(
-      `${service.number || String(index + 1).padStart(2, "0")} / ${service.title || "새 서비스"}`,
-      service.subtitle || "설명을 입력해 주세요.",
+      `${String(index + 1).padStart(2, "0")} / ${service.title || "새 서비스"}`,
+      service.short || "설명을 입력해 주세요.",
       `<div class="field-grid three">
-        ${inputField({ label: "번호", path: `services.${index}.number`, value: service.number, max: 4 })}
         ${inputField({ label: "서비스 이름", path: `services.${index}.title`, value: service.title, max: 18 })}
-        ${inputField({ label: "짧은 소개", path: `services.${index}.subtitle`, value: service.subtitle, max: 40 })}
+        ${inputField({ label: "짧은 소개", path: `services.${index}.short`, value: service.short, max: 40 })}
         ${textareaField({ label: "설명", path: `services.${index}.description`, value: service.description, max: 180 })}
-        <div class="field full"><div class="field-label">핵심 구축</div>${renderItems(service.items || [], `services.${index}.items`, "핵심 구축")}</div>
-        <div class="field full"><div class="field-label">고급 기능</div>${renderItems(service.advanced || [], `services.${index}.advanced`, "고급 기능")}</div>
-        <div class="field full"><div class="field-label">운영과 인프라</div>${renderItems(service.operations || [], `services.${index}.operations`, "운영과 인프라")}</div>
+        <div class="field full"><div class="field-label">제공 항목</div>${renderItems(service.items || [], `services.${index}.items`, "제공 항목")}</div>
       </div>`,
       moveActions("services", index, content.services.length)
     )).join("");
@@ -415,13 +409,11 @@
           <div class="editor-card-body">
             <div class="toggle-row">
               <label class="switch-field"><input type="checkbox" data-path="projects.${index}.published"${project.published ? " checked" : ""}><span class="switch-ui"></span><span>사이트 공개</span></label>
-              <label class="switch-field"><input type="checkbox" data-path="projects.${index}.featured"${project.featured ? " checked" : ""}><span class="switch-ui"></span><span>대표 작업</span></label>
             </div>
             <div class="field-grid three">
               ${inputField({ label: "작업 제목", path: `projects.${index}.title`, value: project.title, max: 50, full: true })}
               ${inputField({ label: "분류", path: `projects.${index}.category`, value: project.category, max: 30 })}
               ${inputField({ label: "연도", path: `projects.${index}.year`, value: project.year, max: 6 })}
-              <div class="field"><label for="field-projects-${index}-visual">기본 그래픽 색상</label><select id="field-projects-${index}-visual" data-path="projects.${index}.visual"><option value="yellow"${project.visual === "yellow" ? " selected" : ""}>노랑</option><option value="blue"${project.visual === "blue" ? " selected" : ""}>파랑</option><option value="paper"${project.visual === "paper" ? " selected" : ""}>밝은색</option></select></div>
               ${textareaField({ label: "목록 소개", path: `projects.${index}.summary`, value: project.summary, max: 220 })}
               ${textareaField({ label: "고객의 문제", path: `projects.${index}.problem`, value: project.problem, max: 260 })}
               ${textareaField({ label: "구축 내용", path: `projects.${index}.solution`, value: project.solution, max: 260 })}
@@ -438,12 +430,12 @@
   const renderProcess = () => {
     const root = $("[data-process-editor]");
     root.innerHTML = content.process.length ? content.process.map((item, index) => editorCard(
-      `${item.number || String(index + 1).padStart(2, "0")} / ${item.title || "새 단계"}`,
+      `${String(index + 1).padStart(2, "0")} / ${item.title || "새 단계"}`,
       item.description || "설명을 입력해 주세요.",
       `<div class="field-grid three">
-        ${inputField({ label: "번호", path: `process.${index}.number`, value: item.number, max: 4 })}
         ${inputField({ label: "단계 이름", path: `process.${index}.title`, value: item.title, max: 35 })}
         ${textareaField({ label: "설명", path: `process.${index}.description`, value: item.description, max: 180 })}
+        ${textareaField({ label: "확인 항목", path: `process.${index}.result`, value: item.result, max: 120, short: true })}
       </div>`,
       moveActions("process", index, content.process.length)
     )).join("") : `<div class="empty-editor"><div><b>등록된 진행 단계가 없습니다.</b><span>단계를 추가해 고객에게 작업 흐름을 안내하세요.</span></div></div>`;
@@ -591,7 +583,6 @@
     id: `project-${Date.now()}`,
     order: content.projects.length + 1,
     published: false,
-    featured: false,
     title: "새 작업",
     category: "WEB",
     year: String(new Date().getFullYear()),
@@ -602,8 +593,7 @@
     features: [],
     image: "",
     imageAlt: "",
-    url: "",
-    visual: "blue"
+    url: ""
   });
 
   $("[data-add-project]").addEventListener("click", () => {
@@ -615,15 +605,13 @@
   });
 
   $("[data-add-service]").addEventListener("click", () => {
-    const index = content.services.length + 1;
-    content.services.push({ id: `service-${Date.now()}`, number: String(index).padStart(2, "0"), title: "새 서비스", subtitle: "짧은 소개", description: "", items: [], advanced: [], operations: [] });
+    content.services.push({ id: `service-${Date.now()}`, title: "새 서비스", short: "짧은 소개", description: "", items: [] });
     renderServices();
     updateDirtyState();
   });
 
   $("[data-add-process]").addEventListener("click", () => {
-    const index = content.process.length + 1;
-    content.process.push({ number: String(index).padStart(2, "0"), title: "새 단계", description: "" });
+    content.process.push({ title: "새 단계", description: "", result: "" });
     renderProcess();
     updateDirtyState();
   });
@@ -702,11 +690,12 @@
     const processSteps = Array.isArray(candidate?.process) ? candidate.process : [];
     const faqItems = Array.isArray(candidate?.faq) ? candidate.faq : [];
 
-    if (candidate?.meta?.version !== 3) errors.push("지원하지 않는 콘텐츠 버전입니다. 최신 사이트 내용을 다시 불러와 주세요.");
+    if (typeof candidate?.meta?.version !== "number" || candidate.meta.version < 47) errors.push("지원하지 않는 콘텐츠 버전입니다. 최신 사이트 내용을 다시 불러와 주세요.");
     required(candidate?.meta?.title, "사이트 제목");
     required(candidate?.meta?.description, "사이트 설명");
     required(candidate?.brand?.name, "브랜드 이름");
-    required(candidate?.brand?.headlineTop, "첫 화면 제목");
+    required(candidate?.brand?.headline, "제작 분야 한 줄");
+    required(candidate?.brand?.description, "첫 화면 설명");
     required(candidate?.contact?.owner, "운영자");
     required(candidate?.contact?.phone, "전화번호");
     if (String(candidate?.contact?.phone || "").replace(/\D/g, "").length < 9) errors.push("전화번호를 다시 확인해 주세요.");
@@ -721,18 +710,18 @@
     if (!Array.isArray(candidate?.process)) errors.push("진행 절차 데이터 형식이 올바르지 않습니다.");
     if (!Array.isArray(candidate?.faq)) errors.push("자주 묻는 질문 데이터 형식이 올바르지 않습니다.");
 
-    if (!services.length) errors.push("서비스를 한 개 이상 등록해 주세요.");
+    if (services.length !== 4) errors.push("사이트 레이아웃 기준으로 서비스는 정확히 4개여야 합니다.");
     const serviceIds = new Set();
     services.forEach((service, index) => {
       required(service?.id, `서비스 ${index + 1}의 내부 ID`);
-      required(service?.number, `서비스 ${index + 1}의 번호`);
       required(service?.title, `서비스 ${index + 1}의 이름`);
-      required(service?.subtitle, `서비스 ${index + 1}의 짧은 소개`);
+      required(service?.short, `서비스 ${index + 1}의 짧은 소개`);
       required(service?.description, `서비스 ${index + 1}의 설명`);
       if (service?.id && !/^[a-z0-9][a-z0-9-]*$/.test(service.id)) errors.push(`서비스 ${index + 1}의 내부 ID 형식이 올바르지 않습니다.`);
       if (serviceIds.has(service?.id)) errors.push(`서비스 ${index + 1}의 내부 ID가 중복되었습니다.`);
       serviceIds.add(service?.id);
-      stringArray(service?.items, `서비스 ${index + 1}의 핵심 구축 목록`);
+      stringArray(service?.items, `서비스 ${index + 1}의 제공 항목`);
+      if (Array.isArray(service?.items) && service.items.length < 4) errors.push(`서비스 ${index + 1}의 제공 항목을 네 개 이상 입력해 주세요.`);
     });
 
     const projectIds = new Set();
@@ -753,7 +742,6 @@
         required(project?.imageAlt, `공개 작업 ${index + 1}의 이미지 설명`);
         stringArray(project?.features, `공개 작업 ${index + 1}의 구현 기능`);
       }
-      if (project?.featured && !project?.published) errors.push(`작업 ${index + 1}은 사이트에 공개한 뒤 대표 작업으로 설정해 주세요.`);
       if (project?.image) {
         if (project.image.startsWith("assets/")) {
           if (!/^assets\/[a-zA-Z0-9_./-]+$/.test(project.image) || project.image.includes("..")) errors.push(`작업 ${index + 1}의 이미지 경로가 올바르지 않습니다.`);
@@ -774,11 +762,11 @@
 
     if (!projects.some((project) => project?.published)) errors.push("사이트에 공개할 작업 사례를 한 개 이상 설정해 주세요.");
     stringArray(capabilities, "기능 목록");
-    if (!processSteps.length) errors.push("진행 절차를 한 개 이상 등록해 주세요.");
+    if (processSteps.length < 4) errors.push("진행 절차를 네 개 이상 등록해 주세요.");
     processSteps.forEach((step, index) => {
-      required(step?.number, `진행 절차 ${index + 1}의 번호`);
       required(step?.title, `진행 절차 ${index + 1}의 이름`);
       required(step?.description, `진행 절차 ${index + 1}의 설명`);
+      required(step?.result, `진행 절차 ${index + 1}의 확인 항목`);
     });
     if (!faqItems.length) errors.push("자주 묻는 질문을 한 개 이상 등록해 주세요.");
     faqItems.forEach((item, index) => {
@@ -815,9 +803,9 @@
   const previewDraft = () => {
     const visible = content.projects.filter((project) => project.published).slice(0, 4);
     $("[data-draft-preview]").innerHTML = `
-      <div class="preview-brand"><b>SWAG</b><span>SYSTEM WEB APP GAME</span></div>
+      <div class="preview-brand"><b>SWAG</b><span>${escapeHtml(content.brand.expansion || "SYSTEM · WEBSITE · APP · GAME")}</span></div>
       <div class="preview-hero">
-        <div><small>${escapeHtml(content.brand.availability)}</small><h2>${escapeHtml(content.brand.headlineTop)}<strong>${escapeHtml(content.brand.headlineFocus)}</strong>${escapeHtml(content.brand.headlineBottom)}</h2><p>${escapeHtml(content.brand.description)}</p></div>
+        <div><small>${escapeHtml(content.brand.expansion || "")}</small><h2>${escapeHtml(content.brand.headline || "")}</h2><p>${escapeHtml(content.brand.description || "")}</p></div>
         <div class="preview-hero-art">SWAG</div>
       </div>
       <div class="preview-projects">${visible.length ? visible.map((project) => `<article class="preview-project"><span>${escapeHtml(project.category)} / ${escapeHtml(project.year)}</span><h3>${escapeHtml(project.title)}</h3><p>${escapeHtml(project.summary)}</p></article>`).join("") : `<article class="preview-project"><span>PORTFOLIO</span><h3>공개 작업 없음</h3><p>작업 사례에서 사이트 공개를 켜면 이곳에 표시됩니다.</p></article>`}</div>`;
