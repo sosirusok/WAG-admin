@@ -203,7 +203,7 @@
   const assertEditableContent = (candidate) => {
     const validObject = (value) => value && typeof value === "object" && !Array.isArray(value);
     const valid = validObject(candidate)
-      && candidate?.meta?.version === 3
+      && typeof candidate?.meta?.version === "number" && candidate.meta.version >= 47
       && validObject(candidate.meta)
       && validObject(candidate.brand)
       && validObject(candidate.contact)
@@ -710,7 +710,7 @@
     if (!Array.isArray(candidate?.process)) errors.push("진행 절차 데이터 형식이 올바르지 않습니다.");
     if (!Array.isArray(candidate?.faq)) errors.push("자주 묻는 질문 데이터 형식이 올바르지 않습니다.");
 
-    if (services.length !== 4) errors.push("사이트 레이아웃 기준으로 서비스는 정확히 4개여야 합니다.");
+    if (services.length < 4 || services.length > 6) errors.push("서비스는 4개 이상 6개 이하로 등록해 주세요.");
     const serviceIds = new Set();
     services.forEach((service, index) => {
       required(service?.id, `서비스 ${index + 1}의 내부 ID`);
