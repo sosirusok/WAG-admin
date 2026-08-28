@@ -203,7 +203,7 @@
   const assertEditableContent = (candidate) => {
     const validObject = (value) => value && typeof value === "object" && !Array.isArray(value);
     const valid = validObject(candidate)
-      && typeof candidate?.meta?.version === "number" && candidate.meta.version >= 50
+      && typeof candidate?.meta?.version === "number" && candidate.meta.version >= 49
       && validObject(candidate.meta)
       && validObject(candidate.brand)
       && validObject(candidate.contact)
@@ -689,7 +689,7 @@
     const processSteps = Array.isArray(candidate?.process) ? candidate.process : [];
     const faqItems = Array.isArray(candidate?.faq) ? candidate.faq : [];
 
-    if (typeof candidate?.meta?.version !== "number" || candidate.meta.version < 50) errors.push("지원하지 않는 콘텐츠 버전입니다. 최신 사이트 내용을 다시 불러와 주세요.");
+    if (typeof candidate?.meta?.version !== "number" || candidate.meta.version < 49) errors.push("지원하지 않는 콘텐츠 버전입니다. 최신 사이트 내용을 다시 불러와 주세요.");
     required(candidate?.meta?.title, "사이트 제목");
     required(candidate?.meta?.description, "사이트 설명");
     required(candidate?.brand?.name, "브랜드 이름");
