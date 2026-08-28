@@ -203,7 +203,7 @@
   const assertEditableContent = (candidate) => {
     const validObject = (value) => value && typeof value === "object" && !Array.isArray(value);
     const valid = validObject(candidate)
-      && typeof candidate?.meta?.version === "number" && candidate.meta.version >= 47
+      && typeof candidate?.meta?.version === "number" && candidate.meta.version >= 49
       && validObject(candidate.meta)
       && validObject(candidate.brand)
       && validObject(candidate.contact)
@@ -333,10 +333,9 @@
           ${textareaField({ label: "첫 화면 설명", path: "brand.description", value: content.brand.description, max: 220 })}
           ${textareaField({ label: "문의 영역 안내", path: "contact.responseNote", value: content.contact.responseNote, max: 180, short: true })}
         </div>`),
-      editorCard("연락처", "사이트 푸터와 문의 영역에 표시됩니다.", `
+      editorCard("연락처", "사이트 푸터와 문의 영역에 표시됩니다. 전화번호 없이 오픈채팅으로만 상담합니다.", `
         <div class="field-grid">
           ${inputField({ label: "운영자", path: "contact.owner", value: content.contact.owner, max: 20 })}
-          ${inputField({ label: "전화번호", path: "contact.phone", value: content.contact.phone, max: 20 })}
           ${inputField({ label: "카카오 상담 주소", path: "contact.kakao", value: content.contact.kakao, type: "url", full: true, help: "https://로 시작하는 오픈채팅 주소를 입력합니다." })}
           ${inputField({ label: "상담 링크 이름", path: "contact.kakaoLabel", value: content.contact.kakaoLabel, max: 30 })}
         </div>`)
@@ -690,15 +689,13 @@
     const processSteps = Array.isArray(candidate?.process) ? candidate.process : [];
     const faqItems = Array.isArray(candidate?.faq) ? candidate.faq : [];
 
-    if (typeof candidate?.meta?.version !== "number" || candidate.meta.version < 47) errors.push("지원하지 않는 콘텐츠 버전입니다. 최신 사이트 내용을 다시 불러와 주세요.");
+    if (typeof candidate?.meta?.version !== "number" || candidate.meta.version < 49) errors.push("지원하지 않는 콘텐츠 버전입니다. 최신 사이트 내용을 다시 불러와 주세요.");
     required(candidate?.meta?.title, "사이트 제목");
     required(candidate?.meta?.description, "사이트 설명");
     required(candidate?.brand?.name, "브랜드 이름");
     required(candidate?.brand?.headline, "제작 분야 한 줄");
     required(candidate?.brand?.description, "첫 화면 설명");
     required(candidate?.contact?.owner, "운영자");
-    required(candidate?.contact?.phone, "전화번호");
-    if (String(candidate?.contact?.phone || "").replace(/\D/g, "").length < 9) errors.push("전화번호를 다시 확인해 주세요.");
     try {
       const url = new URL(candidate?.contact?.kakao);
       if (url.protocol !== "https:") throw new Error();
